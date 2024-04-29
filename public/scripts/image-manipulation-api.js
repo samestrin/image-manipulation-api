@@ -1,18 +1,31 @@
 const BASE_URL = process.env.REACT_APP_API_URL;
 
+/**
+ * Loads the demo form for a specified API endpoint.
+ *
+ * @param {string} endpointName - The name of the API endpoint to load the demo for.
+ *
+ * @example
+ * // Load demo form for the "resize" endpoint
+ * loadDemo('resize');
+ */
 function loadDemo(endpointName) {
-  // 1. Clear any existing content in the 'content' area
-  const contentArea = document.getElementById("content");
-  contentArea.innerHTML = "";
+  const contentArea = $("#content");
+  contentArea.empty();
 
-  // 2. Call the form creation function
   createDemoForm(endpointName);
 }
 
+/**
+ * Populates the sidebar menu with clickable items for each API endpoint.
+ *
+ * @example
+ * // Populate the sidebar menu with endpoint options
+ * populateMenu();
+ */
 function populateMenu() {
-  const menuList = document.querySelector("#sidebar ul");
+  const menuList = $("#sidebar ul");
 
-  // You'll likely have an array of endpoint names. Example:
   const endpoints = [
     "resize",
     "crop",
@@ -28,94 +41,140 @@ function populateMenu() {
   ];
 
   endpoints.forEach((endpoint) => {
-    const listItem = document.createElement("li");
-    const link = document.createElement("a");
-    link.href = "#"; // Prevents default navigation
-    link.textContent = endpoint; // Display the endpoint name
+    const listItem = $("<li></li>");
+    const link = $("<a></a>").attr("href", "#").text(endpoint);
 
-    // Event listener for the menu item
-    link.addEventListener("click", (event) => {
+    link.on("click", (event) => {
       event.preventDefault();
       loadDemo(endpoint);
     });
 
-    listItem.appendChild(link);
-    menuList.appendChild(listItem);
+    listItem.append(link);
+    menuList.append(listItem);
   });
 }
 
+/**
+ * Handles the file upload process, reads the uploaded file to display an image preview, and handles errors.
+ * This function ensures graceful error handling if the FileReader encounters an issue.
+ *
+ * @throws {Error} Describes the FileReader error if file reading fails.
+ *
+ * @example
+ * // Triggered when a file is selected for upload
+ * handleFileUpload();
+ */
 function handleFileUpload() {
-  const imageUpload = document.getElementById("imageUpload");
+  const previewContainer = $("#preview");
+  if (previewContainer.length) {
+    previewContainer.empty();
+    previewContainer.append(previewImg);
+  } else {
+    console.error("Preview container not found!");
+  }
+
+  const imageUpload = $("#imageUpload")[0];
   const file = imageUpload.files[0];
 
   if (file) {
     const reader = new FileReader();
     reader.onload = function (e) {
-      // Create the preview image element
-      const previewImg = document.createElement("img");
-      previewImg.src = e.target.result;
-      previewImg.alt = "Preview";
+      const previewImg = $("<img>").attr({
+        src: e.target.result,
+        alt: "Preview",
+      });
 
-      // Get the preview container and clear any existing image
-      const previewContainer = document.getElementById("preview");
-      previewContainer.innerHTML = ""; // Clear existing content
-
-      // Add the new preview image
-      previewContainer.appendChild(previewImg);
+      const previewContainer = $("#preview");
+      previewContainer.empty();
+      previewContainer.append(previewImg);
     };
+
+    reader.onerror = function () {
+      alert("Failed to read file!");
+      console.error("There was an error reading the file:", reader.error);
+    };
+
     reader.readAsDataURL(file);
   }
 }
 
+/**
+ * Processes the uploaded image by sending it to the server via AJAX. Updates the UI with a progress bar,
+ * displays the processed image, or shows a detailed error message if processing fails.
+ *
+ * @param {string} endpoint - The API endpoint to which the image data is posted.
+ * @param {FormData} formData - The form data that includes the image and processing parameters.
+ * @throws {Error} Displays a detailed error message in the UI if the image processing fails.
+ *
+ * @example
+ * // Process image with the "crop" endpoint
+ * const formData = new FormData(document.getElementById('demoForm_crop'));
+ * processImage('crop', formData);
+ */
 function processImage(endpoint, formData) {
-  document.querySelector(".progress").style.display = "block";
-  const progressBar = document.getElementById("progressBar");
+  $(".progress").show();
+  const progressBar = $("#progressBar");
 
-  const xhr = new XMLHttpRequest();
-  xhr.open("POST", `${BASE_URL}/${endpoint}`);
-
-  xhr.upload.onprogress = function (event) {
-    if (event.lengthComputable) {
-      const percentCompleted = Math.round((event.loaded * 100) / event.total);
-      progressBar.style.width = percentCompleted + "%";
-      progressBar.innerText = percentCompleted + "%";
-    }
-  };
-
-  xhr.onload = function () {
-    if (xhr.status === 200) {
-      const imageUrl = URL.createObjectURL(xhr.response);
-      const resultImg = document.createElement("img");
-      resultImg.src = imageUrl;
-      const resultsContainer = document.getElementById("results");
-      resultsContainer.innerHTML = "";
-      resultsContainer.appendChild(resultImg);
-    } else {
+  $.ajax({
+    url: `${BASE_URL}/${endpoint}`,
+    type: "POST",
+    data: formData,
+    processData: false,
+    contentType: false,
+    xhr: function () {
+      var xhr = new window.XMLHttpRequest();
+      xhr.upload.addEventListener(
+        "progress",
+        function (evt) {
+          if (evt.lengthComputable) {
+            var percentComplete = Math.round((evt.loaded / evt.total) * 100);
+            progressBar
+              .width(percentComplete + "%")
+              .text(percentComplete + "%");
+          }
+        },
+        false
+      );
+      return xhr;
+    },
+    success: function (data) {
+      const imageUrl = URL.createObjectURL(data);
+      const resultImg = $("<img>").attr("src", imageUrl);
+      const resultsContainer = $("#results");
+      resultsContainer.empty();
+      resultsContainer.append(resultImg);
+    },
+    complete: function () {
+      progressBar.width("100%").text("100%");
+      $(".progress").hide();
+    },
+    error: function (xhr) {
       console.error("Error:", xhr.statusText);
-      alert("Image processing failed. Please try again.");
-    }
-    document.querySelector(".progress").style.display = "none";
-  };
-
-  xhr.onerror = function () {
-    console.error("Error:", xhr.statusText);
-    alert("Image processing failed. Please try again.");
-    document.querySelector(".progress").style.display = "none";
-  };
-
-  xhr.responseType = "blob";
-  xhr.send(formData);
+      $("#results").html(
+        `<p style="color: red;">Image processing failed: ${xhr.statusText}. Please try again.</p>`
+      );
+    },
+  });
 }
 
+/**
+ * Creates and appends a demo form for image processing based on the selected endpoint.
+ *
+ * @param {string} endpoint - The endpoint for which the form is being created.
+ *
+ * @example
+ * // Create a demo form for the "contrast" endpoint
+ * createDemoForm('contrast');
+ */
 function createDemoForm(endpoint) {
-  const contentArea = document.getElementById("content");
-  contentArea.innerHTML = ""; // Clear existing content
+  const contentArea = $("#content");
+  contentArea.empty();
 
-  const demoForm = document.createElement("form");
-  demoForm.id = `demoForm_${endpoint}`;
-  demoForm.enctype = "multipart/form-data"; // Important for file uploads
+  const demoForm = $("<form>").attr({
+    id: `demoForm_${endpoint}`,
+    enctype: "multipart/form-data",
+  });
 
-  // Create a common image file input for endpoints that require an image file
   if (
     [
       "crop",
@@ -130,120 +189,121 @@ function createDemoForm(endpoint) {
     ].includes(endpoint)
   ) {
     const imageInput = createInput("file", "image", "Image File");
-    imageInput.children[1].accept = "image/*"; // Only accept image files
-    demoForm.appendChild(imageInput);
+    imageInput.find("input").attr("accept", "image/*");
+    demoForm.append(imageInput);
   }
 
-  // Add specific input fields based on the endpoint
   switch (endpoint) {
     case "crop":
-      demoForm.appendChild(createInput("number", "x1", "X1 Coordinate"));
-      demoForm.appendChild(createInput("number", "y1", "Y1 Coordinate"));
-      demoForm.appendChild(createInput("number", "x2", "X2 Coordinate"));
-      demoForm.appendChild(createInput("number", "y2", "Y2 Coordinate"));
+      demoForm.append(createInput("number", "x1", "X1 Coordinate"));
+      demoForm.append(createInput("number", "y1", "Y1 Coordinate"));
+      demoForm.append(createInput("number", "x2", "X2 Coordinate"));
+      demoForm.append(createInput("number", "y2", "Y2 Coordinate"));
       break;
     case "rotate":
-      demoForm.appendChild(
+      demoForm.append(
         createInput("number", "angle", "Rotation Angle (degrees)")
       );
       break;
     case "brightness":
-      demoForm.appendChild(
-        createInput("number", "factor", "Brightness Factor")
-      );
+      demoForm.append(createInput("number", "factor", "Brightness Factor"));
       break;
     case "contrast":
-      demoForm.appendChild(createInput("number", "factor", "Contrast Factor"));
+      demoForm.append(createInput("number", "factor", "Contrast Factor"));
       break;
     case "flip":
-      const axisSelect = document.createElement("select");
-      axisSelect.name = "axis";
-      axisSelect.id = "axis";
+      const axisSelect = $("<select>").attr({ name: "axis", id: "axis" });
       ["horizontal", "vertical"].forEach((axis) => {
-        const option = document.createElement("option");
-        option.value = axis;
-        option.textContent = axis.charAt(0).toUpperCase() + axis.slice(1);
-        axisSelect.appendChild(option);
+        axisSelect.append(
+          $("<option>")
+            .val(axis)
+            .text(axis.charAt(0).toUpperCase() + axis.slice(1))
+        );
       });
-      const axisContainer = document.createElement("div");
-      axisContainer.appendChild(
-        (document.createElement("label").textContent = "Flip Axis")
+      const axisContainer = $("<div>").append(
+        $("<label>").attr("for", "axis").text("Flip Axis"),
+        axisSelect
       );
-      axisContainer.children[0].htmlFor = "axis";
-      axisContainer.appendChild(axisSelect);
-      demoForm.appendChild(axisContainer);
+      demoForm.append(axisContainer);
       break;
     case "filter":
-      const filterTypeSelect = document.createElement("select");
-      filterTypeSelect.name = "filter_type";
-      filterTypeSelect.id = "filter_type";
-      ["blur", "sharpen", "edge_detect"].forEach((type) => {
-        const option = document.createElement("option");
-        option.value = type;
-        option.textContent = type.charAt(0).toUpperCase() + type.slice(1);
-        filterTypeSelect.appendChild(option);
+      const filterTypeSelect = $("<select>").attr({
+        name: "filter_type",
+        id: "filter_type",
       });
-      const filterTypeContainer = document.createElement("div");
-      filterTypeContainer.appendChild(
-        (document.createElement("label").textContent = "Filter Type")
+      ["blur", "sharpen", "edge_detect"].forEach((type) => {
+        filterTypeSelect.append(
+          $("<option>")
+            .val(type)
+            .text(type.charAt(0).toUpperCase() + type.slice(1))
+        );
+      });
+      const filterTypeContainer = $("<div>").append(
+        $("<label>").attr("for", "filter_type").text("Filter Type"),
+        filterTypeSelect
       );
-      filterTypeContainer.children[0].htmlFor = "filter_type";
-      filterTypeContainer.appendChild(filterTypeSelect);
-      demoForm.appendChild(filterTypeContainer);
+      demoForm.append(filterTypeContainer);
       break;
     case "convert":
-      demoForm.appendChild(
+      demoForm.append(
         createInput("text", "output_format", "Output Format (e.g., png, jpeg)")
       );
       break;
     case "add_text":
-      demoForm.appendChild(createInput("text", "text", "Text to Add"));
-      demoForm.appendChild(createInput("number", "font", "Font (ID)"));
-      demoForm.appendChild(createInput("number", "font_size", "Font Size"));
-      demoForm.appendChild(createInput("number", "left", "Left Position"));
-      demoForm.appendChild(createInput("number", "top", "Top Position"));
-      demoForm.appendChild(
+      demoForm.append(createInput("text", "text", "Text to Add"));
+      demoForm.append(createInput("number", "font", "Font (ID)"));
+      demoForm.append(createInput("number", "font_size", "Font Size"));
+      demoForm.append(createInput("number", "left", "Left Position"));
+      demoForm.append(createInput("number", "top", "Top Position"));
+      demoForm.append(
         createInput("text", "color", "Color (e.g., 255,255,255)")
       );
       break;
     case "list_fonts":
-      // No additional fields required for listing fonts
+      // No specific inputs needed, just the action to list fonts.
       break;
   }
 
-  // Add submit button
-  const submitButton = document.createElement("button");
-  submitButton.type = "submit";
-  submitButton.textContent = "Process Image";
-  demoForm.appendChild(submitButton);
+  const submitButton = $("<button>")
+    .attr("type", "submit")
+    .text("Process Image");
+  demoForm.append(submitButton);
 
-  // Handle form submission
-  demoForm.addEventListener("submit", (event) => {
+  demoForm.on("submit", (event) => {
     event.preventDefault();
-    const formData = new FormData(demoForm);
+    const formData = new FormData(demoForm[0]);
     processImage(endpoint, formData);
   });
 
-  contentArea.appendChild(demoForm);
+  contentArea.append(demoForm);
 }
 
-// Helper function to create input elements
+/**
+ * Creates a labeled input field and returns the constructed element.
+ *
+ * @param {string} type - The type of the input element (e.g., 'text', 'number').
+ * @param {string} name - The name attribute for the input element.
+ * @param {string} labelText - The text to be used for the label of the input.
+ * @returns {jQuery} The jQuery object containing the constructed input and label.
+ *
+ * @example
+ * // Create a number input for an angle with label "Rotation Angle (degrees)"
+ * createInput('number', 'angle', 'Rotation Angle (degrees)');
+ */
 function createInput(type, name, labelText) {
-  const label = document.createElement("label");
-  label.htmlFor = name; // Ensure the label links to the input
-  label.textContent = labelText;
+  const label = $("<label>").attr("for", name).text(labelText);
+  const input = $("<input>").attr({
+    type: type,
+    name: name,
+    id: name,
+    required: true,
+  });
 
-  const input = document.createElement("input");
-  input.type = type;
-  input.name = name;
-  input.id = name;
-  input.required = true; // Assuming we want input fields to be required
-
-  // Optional: Add a container for styling
-  const inputContainer = document.createElement("div");
-  inputContainer.classList.add("form-group"); // Adds a Bootstrap class
-  inputContainer.appendChild(label);
-  inputContainer.appendChild(input);
-
+  const inputContainer = $("<div>").addClass("form-group");
+  inputContainer.append(label).append(input);
   return inputContainer;
 }
+
+$(document).ready(function () {
+  populateMenu();
+});
