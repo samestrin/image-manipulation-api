@@ -1,0 +1,25 @@
+{
+  "name": "image-manipulation-api-react",
+  "version": "0.0.1",
+  "description": "A React based demo interface for samestrin/image-manipulation-api-digitalocean.",
+  "main": "public/index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/samestrin/image-manipulation-api-react.git"
+  },
+  "keywords": [
+    "image",
+    "image-manipulation",
+    "bootstrap",
+    "jquery"
+  ],
+  "author": "Sam Estrin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/samestrin/image-manipulation-api-react/issues"
+  },
+  "homepage": "https://github.com/samestrin/image-manipulation-api-react#readme"
+}
