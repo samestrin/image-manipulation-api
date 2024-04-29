@@ -1,9 +1,10 @@
 const BASE_URL = "";
 
 /**
- * Loads the demo form for a specified API endpoint.
+ * Loads the demo form for a specified API endpoint, updates form attributes, and integrates it within a Bootstrap card structure.
  *
  * @param {string} endpointName - The name of the API endpoint to load the demo for.
+ * @throws {Error} If the form or other elements are not found in the DOM.
  *
  * @example
  * // Load demo form for the "resize" endpoint
@@ -45,7 +46,9 @@ function loadDemo(endpointName) {
 }
 
 /**
- * Populates the sidebar menu with clickable items for each API endpoint.
+ * Populates the sidebar menu with clickable items for each API endpoint and sets up event handlers for these items.
+ *
+ * @throws {Error} If the menu element is not found in the DOM.
  *
  * @example
  * // Populate the sidebar menu with endpoint options
@@ -193,6 +196,17 @@ function processImage(endpoint, formData) {
   });
 }
 
+/**
+ * Dynamically adds necessary inputs for various API endpoints into the given form element, based on the specified endpoint.
+ *
+ * @param {string} endpoint - The API endpoint for which inputs need to be added.
+ * @param {jQuery} form - The jQuery object of the form where inputs will be appended.
+ * @throws {Error} If the form or required elements cannot be modified due to missing DOM elements.
+ *
+ * @example
+ * // Add input elements for the "resize" endpoint
+ * addEndpointSpecificInputs('resize', $('#someForm'));
+ */
 function addEndpointSpecificInputs(endpoint, form) {
   // Dynamically add necessary inputs for the endpoint, except for list_fonts
   if (!["list_fonts"].includes(endpoint)) {
@@ -290,6 +304,19 @@ function addEndpointSpecificInputs(endpoint, form) {
   }
 }
 
+/**
+ * Creates a form input wrapped in a Bootstrap 'form-group' with a label.
+ *
+ * @param {string} type - The type of the input element (e.g., 'text', 'number').
+ * @param {string} name - The name attribute for the input element.
+ * @param {string} labelText - The text to display in the label for the input.
+ * @returns {jQuery} A jQuery object containing the constructed form group with label and input.
+ * @throws {Error} If input creation fails due to invalid arguments.
+ *
+ * @example
+ * // Create a text input for 'username'
+ * createInput('text', 'username', 'Username');
+ */
 function createInput(type, name, labelText) {
   const label = $("<label>")
     .attr("for", name)
