@@ -116,7 +116,7 @@ function processImage(endpoint, formData) {
   const progressBar = $("#progressBar");
 
   $.ajax({
-    url: `${BASE_URL}/${endpoint}`,
+    url: `${BASE_URL}/api/${endpoint}`,
     type: "POST",
     data: formData,
     processData: false,
