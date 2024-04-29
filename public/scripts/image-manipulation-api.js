@@ -310,6 +310,13 @@ function createInput(type, name, labelText) {
   return inputContainer;
 }
 
+$(document).on("submit", "form", function (event) {
+  event.preventDefault();
+  const formData = new FormData(this); // 'this' refers to the form that was submitted
+  const endpoint = this.id.replace("demoForm_", ""); // Extract endpoint from form id
+  processImage(endpoint, formData);
+});
+
 $(document).ready(function () {
   populateMenu();
 });
