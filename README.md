@@ -4,7 +4,7 @@
 
 ![Version 0.0.1](https://img.shields.io/badge/Version-0.0.1-blue) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Built with React](https://img.shields.io/badge/Built%20with-React-green)](https://react.dev/)
 
-image-manipulation-api-react is a simple React based testing interface for the [image-manipulation-api-digital-ocean](https://github.com/samestrin/image-manipulation-react) project.
+image-manipulation-api-react is a simple React based testing interface for the [image-manipulation-api-digitalocean](https://github.com/samestrin/image-manipulation-api-digitalocean) project.
 
 _This is under active development and should not yet be considered stable._
 
