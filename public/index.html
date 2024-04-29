@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>image-manipulation-api-react-api-digitalocean Demo</title>
+    <title>image-manipulation-api-demo</title>
     <link
       rel="stylesheet"
       href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
@@ -12,8 +12,37 @@
   <body>
     <div class="container-fluid">
       <div class="row">
+        <div class="col-12">
+          <h1>image-manipulation-api-demo</h1>
+          <p>
+            <small>
+              GitHub:
+              <a href="https://github.com/samestrin/image-manipulation-api-demo"
+                >https://github.com/samestrin/image-manipulation-api-demo</a
+              >
+              (<a
+                href="https://github.com/samestrin/image-manipulation-api-demo/blob/main/LICENSE"
+                >MIT License</a
+              >)</small
+            ><br />
+          </p>
+          <p>
+            This is a simple a Bootstrap/jQuery based testing interface for
+            <a
+              href="https://github.com/samestrin/image-manipulation-api-digitalocean"
+              >samestrin/image-manipulation-api-digitalocean</a
+            >. The image-manipulation-api is a Flask-based web service designed
+            to perform various image processing tasks.
+          </p>
+
+          <p><b>Select an endpoint to test:</b></p>
+        </div>
+      </div>
+      <div class="row">
         <div class="col-3" id="sidebar">
-          <ul class="nav flex-column"></ul>
+          <div class="list-group" id="nav-menu">
+            <!-- Links will be dynamically added here -->
+          </div>
         </div>
         <div class="col-9">
           <form
@@ -36,12 +65,14 @@
           </div>
           <div id="message" style="display: none"></div>
           <div id="content" style="display: none">
-            <div id="preview" class="image-container">
-              <h3>Uploaded Image Preview</h3>
+            <div id="originalImageContainer" class="image-container">
+              <h2>Original Image</h2>
+              <img id="originalImage" src="#" alt="Original Image" />
             </div>
 
-            <div id="results" class="image-container">
-              <h3>Processed Image</h3>
+            <div id="processedImageContainer" class="image-container">
+              <h2>Processed Image</h2>
+              <img id="processedImage" src="#" alt="Processed Image" />
             </div>
           </div>
         </div>

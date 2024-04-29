@@ -11,20 +11,37 @@ const BASE_URL = "";
  */
 function loadDemo(endpointName) {
   const form = $("#imageForm");
-  form.empty();
+  form.empty(); // Clear existing contents
   form.show();
+  $("#content").hide();
 
-  // Decide the method based on the endpoint
+  // Set the form attributes based on the endpoint
   const method = endpointName === "list_fonts" ? "GET" : "POST";
   form.attr("method", method);
   form.attr("action", `${BASE_URL}/${endpointName}`);
   form.attr("endpoint", endpointName);
-  // Add additional specific inputs based on endpoint requirements
-  addEndpointSpecificInputs(endpointName, form);
-  // Create a submit button
-  const submitButton = $("<button>").attr("type", "submit").text("Submit");
 
-  form.append(submitButton);
+  // Wrap the form inside a Bootstrap card
+  const card = $("<div>").addClass("card");
+  const cardBody = $("<div>").addClass("card-body");
+  const cardText = $("<div>").addClass("card-text");
+
+  // Append elements to card text
+  addEndpointSpecificInputs(endpointName, cardText); // Add specific inputs inside the card text
+  const submitButton = $("<button>")
+    .attr("type", "submit")
+    .addClass("btn btn-primary")
+    .text("Submit");
+  cardText.append(submitButton); // Append submit button inside card text
+
+  card.append(cardText);
+
+  // Replace the form's usual direct appending with appending to the cardText
+  form.append(card);
+
+  // Make sure to replace the old form location with this new structure
+  // Assuming the form is directly inside a specific container, e.g., a div with id="formContainer"
+  $("#formContainer").html(form); // This will place the entire card inside a specific container
 }
 
 /**
@@ -35,8 +52,8 @@ function loadDemo(endpointName) {
  * populateMenu();
  */
 function populateMenu() {
-  const menuList = $("#sidebar ul");
-
+  const menuList = $("#nav-menu");
+  menuList.empty(); // Ensure the menu is empty before adding new items
   const endpoints = [
     "resize",
     "crop",
@@ -50,18 +67,18 @@ function populateMenu() {
     "list_fonts",
     "add_text",
   ];
-
-  endpoints.forEach((endpoint) => {
-    const listItem = $("<li></li>");
-    const link = $("<a></a>").attr("href", "#").text(endpoint);
-
-    link.on("click", (event) => {
-      event.preventDefault();
-      loadDemo(endpoint);
-    });
-
-    listItem.append(link);
-    menuList.append(listItem);
+  endpoints.forEach((endpoint, index) => {
+    const link = $("<a></a>")
+      .addClass("list-group-item list-group-item-action")
+      .attr("href", "#")
+      .text(endpoint)
+      .on("click", function (event) {
+        event.preventDefault();
+        $(".list-group-item-action").removeClass("active"); // Remove active from all links
+        $(this).addClass("active"); // Set active on the clicked link
+        loadDemo(endpoint);
+      });
+    menuList.append(link);
   });
 }
 
@@ -76,28 +93,17 @@ function populateMenu() {
  * handleFileUpload();
  */
 function handleFileUpload() {
-  const previewContainer = $("#preview");
-  if (previewContainer.length) {
-    previewContainer.empty();
-    previewContainer.append(previewImg);
-  } else {
-    console.error("Preview container not found!");
-  }
-
-  const imageUpload = $("#imageUpload")[0];
+  const imageUpload = $("#imageUpload")[0]; // Assumes there's an input element with id="imageUpload"
   const file = imageUpload.files[0];
 
   if (file) {
     const reader = new FileReader();
     reader.onload = function (e) {
-      const previewImg = $("<img>").attr({
+      // Set the src of the #originalImage img element to the result of the FileReader
+      $("#originalImage").attr({
         src: e.target.result,
-        alt: "Preview",
+        alt: "Original Image Preview",
       });
-
-      const previewContainer = $("#preview");
-      previewContainer.empty();
-      previewContainer.append(previewImg);
     };
 
     reader.onerror = function () {
@@ -105,7 +111,9 @@ function handleFileUpload() {
       console.error("There was an error reading the file:", reader.error);
     };
 
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(file); // This reads the file as a data URL encoding the file's data as base64
+  } else {
+    console.error("No file selected!");
   }
 }
 
@@ -123,12 +131,13 @@ function handleFileUpload() {
  * processImage('crop', formData);
  */
 function processImage(endpoint, formData) {
+  console.log("Processing image for endpoint:", endpoint);
   $("#message").hide();
   $("#message").empty();
 
   $(".progress").show();
   const progressBar = $("#progressBar");
-  alert(`${BASE_URL}/${endpoint}`);
+
   $.ajax({
     url: `${BASE_URL}/${endpoint}`,
     type: "POST",
@@ -137,6 +146,8 @@ function processImage(endpoint, formData) {
     contentType: false,
     xhr: function () {
       var xhr = new window.XMLHttpRequest();
+      xhr.responseType = "blob";
+      progressBar.width("0%").text("0%");
       xhr.upload.addEventListener(
         "progress",
         function (evt) {
@@ -151,14 +162,22 @@ function processImage(endpoint, formData) {
       );
       return xhr;
     },
-    success: function (data) {
-      const imageUrl = URL.createObjectURL(data);
-      const resultImg = $("<img>").attr("src", imageUrl);
-      const resultsContainer = $("#results");
-      resultsContainer.empty();
-      resultsContainer.append(resultImg);
-      const content = $("#content");
-      content.show();
+    success: function (data, textStatus, jqXHR) {
+      var contentType = jqXHR.getResponseHeader("Content-Type");
+
+      const blob = new Blob([data], { type: contentType }); // Use the MIME type from the response
+      const imageUrl = URL.createObjectURL(blob);
+
+      console.log("Content-Type:", contentType);
+      console.log("Blob created:", blob);
+      console.log("imageUrl created:", imageUrl);
+
+      $("#processedImage").attr({
+        src: imageUrl,
+        alt: "Updated Image",
+      });
+
+      $("#content").show();
     },
     complete: function () {
       progressBar.width("100%").text("100%");
@@ -179,6 +198,9 @@ function addEndpointSpecificInputs(endpoint, form) {
   if (!["list_fonts"].includes(endpoint)) {
     const imageInput = createInput("file", "image", "Image File");
     imageInput.find("input").attr("accept", "image/*");
+    imageInput.find("input").attr("id", "imageUpload");
+    imageInput.find("input").on("change", handleFileUpload);
+
     form.append(imageInput);
   }
 
@@ -237,9 +259,22 @@ function addEndpointSpecificInputs(endpoint, form) {
       form.append(filterTypeContainer);
       break;
     case "convert":
-      form.append(
-        createInput("text", "output_format", "Output Format (e.g., png, jpeg)")
-      );
+      const outputFormatSelect = $("<select>").attr({
+        name: "output_format",
+        id: "output_format",
+      });
+      ["png", "jpg", "gif"].forEach((format) => {
+        outputFormatSelect.append(
+          $("<option>").val(format).text(format.toUpperCase())
+        );
+      });
+      const outputFormatContainer = $("<div>")
+        .addClass("form-group")
+        .append(
+          $("<label>").attr("for", "output_format").text("Output Format"),
+          outputFormatSelect
+        );
+      form.append(outputFormatContainer);
       break;
     case "add_text":
       form.append(createInput("text", "text", "Text to Add"));
@@ -256,7 +291,9 @@ function addEndpointSpecificInputs(endpoint, form) {
 }
 
 function createInput(type, name, labelText) {
-  const label = $("<label>").attr("for", name).text(labelText);
+  const label = $("<label>")
+    .attr("for", name)
+    .text(labelText + ": ");
   const input = $("<input>").attr({
     type: type,
     name: name,
