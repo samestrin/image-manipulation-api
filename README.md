@@ -2,7 +2,7 @@
 
 [![Star on GitHub](https://img.shields.io/github/stars/samestrin/image-manipulation-react?style=social)](https://github.com/samestrin/image-manipulation-react/stargazers) [![Fork on GitHub](https://img.shields.io/github/forks/samestrin/image-manipulation-react?style=social)](https://github.com/samestrin/image-manipulation-react/network/members) [![Watch on GitHub](https://img.shields.io/github/watchers/samestrin/image-manipulation-react?style=social)](https://github.com/samestrin/image-manipulation-react/watchers)
 
-![Version 0.0.1](https://img.shields.io/badge/Version-0.0.1-blue) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Built with React](https://shields.io/badge/react-black?logo=react&style=for-the-badge)](https://react.dev/)
+![Version 0.0.1](https://img.shields.io/badge/Version-0.0.1-blue) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Built with React](https://img.shields.io/badge/react%20os-0088CC?style=for-the-badge&logo=reactos&logoColor=white)](https://react.dev/)
 
 image-manipulation-api-react is a simple React based testing interface for the [image-manipulation-api-digital-ocean](https://github.com/samestrin/image-manipulation-react) project.
 
