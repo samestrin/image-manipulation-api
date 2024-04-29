@@ -1,3 +1,5 @@
+const BASE_URL = process.env.REACT_APP_API_URL;
+
 function loadDemo(endpointName) {
   // 1. Clear any existing content in the 'content' area
   const contentArea = document.getElementById("content");
@@ -11,7 +13,19 @@ function populateMenu() {
   const menuList = document.querySelector("#sidebar ul");
 
   // You'll likely have an array of endpoint names. Example:
-  const endpoints = ["resize", "crop", "rotate", "grayscale", "filter"];
+  const endpoints = [
+    "resize",
+    "crop",
+    "rotate",
+    "grayscale",
+    "brightness",
+    "contrast",
+    "flip",
+    "filter",
+    "convert",
+    "list_fonts",
+    "add_text",
+  ];
 
   endpoints.forEach((endpoint) => {
     const listItem = document.createElement("li");
@@ -53,83 +67,163 @@ function handleFileUpload() {
   }
 }
 
-async function processImage(endpoint, formData) {
-  // Show the progress bar
+function processImage(endpoint, formData) {
   document.querySelector(".progress").style.display = "block";
+  const progressBar = document.getElementById("progressBar");
 
-  try {
-    const response = await fetch(`${BASE_URL}/${endpoint}`, {
-      method: "POST",
-      body: formData,
-      onUploadProgress: (progressEvent) => {
-        const percentCompleted = Math.round(
-          (progressEvent.loaded * 100) / progressEvent.total
-        );
-        document.getElementById("progressBar").style.width =
-          percentCompleted + "%";
-        document.getElementById("progressBar").innerText =
-          percentCompleted + "%"; // Optional: Displays percentage text
-      },
-    });
+  const xhr = new XMLHttpRequest();
+  xhr.open("POST", `${BASE_URL}/${endpoint}`);
 
-    if (!response.ok) {
-      throw new Error("Image processing failed. Please try again.");
+  xhr.upload.onprogress = function (event) {
+    if (event.lengthComputable) {
+      const percentCompleted = Math.round((event.loaded * 100) / event.total);
+      progressBar.style.width = percentCompleted + "%";
+      progressBar.innerText = percentCompleted + "%";
     }
+  };
 
-    const blob = await response.blob();
-    const imageUrl = URL.createObjectURL(blob);
-
-    // Create image element for the results
-    const resultImg = document.createElement("img");
-    resultImg.src = imageUrl;
-
-    // Get the results container and clear existing images
-    const resultsContainer = document.getElementById("results");
-    resultsContainer.innerHTML = "";
-
-    // Append the result image
-    resultsContainer.appendChild(resultImg);
-  } catch (error) {
-    console.error("Error:", error);
-    alert("Image processing failed. Please try again.");
-  } finally {
-    // Hide the progress bar
+  xhr.onload = function () {
+    if (xhr.status === 200) {
+      const imageUrl = URL.createObjectURL(xhr.response);
+      const resultImg = document.createElement("img");
+      resultImg.src = imageUrl;
+      const resultsContainer = document.getElementById("results");
+      resultsContainer.innerHTML = "";
+      resultsContainer.appendChild(resultImg);
+    } else {
+      console.error("Error:", xhr.statusText);
+      alert("Image processing failed. Please try again.");
+    }
     document.querySelector(".progress").style.display = "none";
-  }
+  };
+
+  xhr.onerror = function () {
+    console.error("Error:", xhr.statusText);
+    alert("Image processing failed. Please try again.");
+    document.querySelector(".progress").style.display = "none";
+  };
+
+  xhr.responseType = "blob";
+  xhr.send(formData);
 }
 
 function createDemoForm(endpoint) {
-  // Clear any existing content in the demo area
   const contentArea = document.getElementById("content");
-  contentArea.innerHTML = "";
+  contentArea.innerHTML = ""; // Clear existing content
 
-  // Create the form element
   const demoForm = document.createElement("form");
   demoForm.id = `demoForm_${endpoint}`;
+  demoForm.enctype = "multipart/form-data"; // Important for file uploads
 
-  // Add necessary input fields based on the endpoint's parameters.
-  // Example for a 'resize' endpoint:
-  if (endpoint === "resize") {
-    const widthInput = createInput("number", "width", "Width");
-    const heightInput = createInput("number", "height", "Height");
-    demoForm.appendChild(widthInput);
-    demoForm.appendChild(heightInput);
-  } // ... (Add input fields for other endpoints)
+  // Create a common image file input for endpoints that require an image file
+  if (
+    [
+      "crop",
+      "rotate",
+      "grayscale",
+      "brightness",
+      "contrast",
+      "flip",
+      "filter",
+      "convert",
+      "add_text",
+    ].includes(endpoint)
+  ) {
+    const imageInput = createInput("file", "image", "Image File");
+    imageInput.children[1].accept = "image/*"; // Only accept image files
+    demoForm.appendChild(imageInput);
+  }
 
-  // Create a submit button
+  // Add specific input fields based on the endpoint
+  switch (endpoint) {
+    case "crop":
+      demoForm.appendChild(createInput("number", "x1", "X1 Coordinate"));
+      demoForm.appendChild(createInput("number", "y1", "Y1 Coordinate"));
+      demoForm.appendChild(createInput("number", "x2", "X2 Coordinate"));
+      demoForm.appendChild(createInput("number", "y2", "Y2 Coordinate"));
+      break;
+    case "rotate":
+      demoForm.appendChild(
+        createInput("number", "angle", "Rotation Angle (degrees)")
+      );
+      break;
+    case "brightness":
+      demoForm.appendChild(
+        createInput("number", "factor", "Brightness Factor")
+      );
+      break;
+    case "contrast":
+      demoForm.appendChild(createInput("number", "factor", "Contrast Factor"));
+      break;
+    case "flip":
+      const axisSelect = document.createElement("select");
+      axisSelect.name = "axis";
+      axisSelect.id = "axis";
+      ["horizontal", "vertical"].forEach((axis) => {
+        const option = document.createElement("option");
+        option.value = axis;
+        option.textContent = axis.charAt(0).toUpperCase() + axis.slice(1);
+        axisSelect.appendChild(option);
+      });
+      const axisContainer = document.createElement("div");
+      axisContainer.appendChild(
+        (document.createElement("label").textContent = "Flip Axis")
+      );
+      axisContainer.children[0].htmlFor = "axis";
+      axisContainer.appendChild(axisSelect);
+      demoForm.appendChild(axisContainer);
+      break;
+    case "filter":
+      const filterTypeSelect = document.createElement("select");
+      filterTypeSelect.name = "filter_type";
+      filterTypeSelect.id = "filter_type";
+      ["blur", "sharpen", "edge_detect"].forEach((type) => {
+        const option = document.createElement("option");
+        option.value = type;
+        option.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+        filterTypeSelect.appendChild(option);
+      });
+      const filterTypeContainer = document.createElement("div");
+      filterTypeContainer.appendChild(
+        (document.createElement("label").textContent = "Filter Type")
+      );
+      filterTypeContainer.children[0].htmlFor = "filter_type";
+      filterTypeContainer.appendChild(filterTypeSelect);
+      demoForm.appendChild(filterTypeContainer);
+      break;
+    case "convert":
+      demoForm.appendChild(
+        createInput("text", "output_format", "Output Format (e.g., png, jpeg)")
+      );
+      break;
+    case "add_text":
+      demoForm.appendChild(createInput("text", "text", "Text to Add"));
+      demoForm.appendChild(createInput("number", "font", "Font (ID)"));
+      demoForm.appendChild(createInput("number", "font_size", "Font Size"));
+      demoForm.appendChild(createInput("number", "left", "Left Position"));
+      demoForm.appendChild(createInput("number", "top", "Top Position"));
+      demoForm.appendChild(
+        createInput("text", "color", "Color (e.g., 255,255,255)")
+      );
+      break;
+    case "list_fonts":
+      // No additional fields required for listing fonts
+      break;
+  }
+
+  // Add submit button
   const submitButton = document.createElement("button");
   submitButton.type = "submit";
   submitButton.textContent = "Process Image";
   demoForm.appendChild(submitButton);
 
-  // Add event listener to the form submission
+  // Handle form submission
   demoForm.addEventListener("submit", (event) => {
-    event.preventDefault(); // Prevent default form submission
+    event.preventDefault();
     const formData = new FormData(demoForm);
     processImage(endpoint, formData);
   });
 
-  // Append the form to the content area
   contentArea.appendChild(demoForm);
 }
 
