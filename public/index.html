@@ -15,7 +15,42 @@
         <div class="col-3" id="sidebar">
           <ul class="nav flex-column"></ul>
         </div>
-        <div class="col-9" id="content"></div>
+        <div class="col-9" id="content">
+          <input type="file" id="imageUpload" accept="image/*" />
+
+          <div id="preview" class="image-container">
+            <h3>Uploaded Image Preview</h3>
+          </div>
+          <div class="progress" style="display: none">
+            <div
+              id="progressBar"
+              class="progress-bar"
+              role="progressbar"
+              style="width: 0%"
+              aria-valuenow="0"
+              aria-valuemin="0"
+              aria-valuemax="100"
+            ></div>
+          </div>
+          <div id="results" class="image-container">
+            <h3>Processed Image</h3>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-12" id="progressBar">
+          <div class="progress" style="display: none">
+            <div
+              id="progressBar"
+              class="progress-bar"
+              role="progressbar"
+              style="width: 0%"
+              aria-valuenow="0"
+              aria-valuemin="0"
+              aria-valuemax="100"
+            ></div>
+          </div>
+        </div>
       </div>
     </div>
 
