@@ -10,10 +10,25 @@ const BASE_URL = "https://seahorse-app-lacq9.ondigitalocean.app/";
  * loadDemo('resize');
  */
 function loadDemo(endpointName) {
-  const contentArea = $("#content");
-  contentArea.empty();
+  const form = $("#imageForm");
+  form.show();
+  // Decide the method based on the endpoint
+  const method = endpointName === "list_fonts" ? "GET" : "POST";
+  form.attr("method", method);
+  form.attr("action", `${BASE_URL}/api/${endpointName}`);
 
-  createDemoForm(endpointName);
+  // Clear any previous inputs and dynamically add as needed
+  form.empty();
+
+  // Dynamically add necessary inputs for the endpoint, except for list_fonts
+  if (!["list_fonts"].includes(endpointName)) {
+    const imageInput = createInput("file", "image", "Image File");
+    imageInput.find("input").attr("accept", "image/*");
+    form.append(imageInput);
+  }
+
+  // Add additional specific inputs based on endpoint requirements
+  addEndpointSpecificInputs(endpointName, form);
 }
 
 /**
@@ -157,25 +172,7 @@ function processImage(endpoint, formData) {
   });
 }
 
-/**
- * Creates and appends a demo form for image processing based on the selected endpoint.
- *
- * @param {string} endpoint - The endpoint for which the form is being created.
- *
- * @example
- * // Create a demo form for the "contrast" endpoint
- * createDemoForm('contrast');
- */
-function createDemoForm(endpoint) {
-  const contentArea = $("#content");
-  contentArea.empty();
-  contentArea.show();
-
-  const demoForm = $("<form>").attr({
-    id: `demoForm_${endpoint}`,
-    enctype: "multipart/form-data",
-  });
-
+function addEndpointSpecificInputs(endpoint, form) {
   if (
     [
       "resize",
@@ -192,30 +189,28 @@ function createDemoForm(endpoint) {
   ) {
     const imageInput = createInput("file", "image", "Image File");
     imageInput.find("input").attr("accept", "image/*");
-    demoForm.append(imageInput);
+    form.append(imageInput);
   }
 
   switch (endpoint) {
     case "resize":
-      demoForm.append(createInput("number", "width", "Width"));
-      demoForm.append(createInput("number", "height", "Height"));
+      form.append(createInput("number", "width", "Width"));
+      form.append(createInput("number", "height", "Height"));
       break;
     case "crop":
-      demoForm.append(createInput("number", "x1", "X1 Coordinate"));
-      demoForm.append(createInput("number", "y1", "Y1 Coordinate"));
-      demoForm.append(createInput("number", "x2", "X2 Coordinate"));
-      demoForm.append(createInput("number", "y2", "Y2 Coordinate"));
+      form.append(createInput("number", "x1", "X1 Coordinate"));
+      form.append(createInput("number", "y1", "Y1 Coordinate"));
+      form.append(createInput("number", "x2", "X2 Coordinate"));
+      form.append(createInput("number", "y2", "Y2 Coordinate"));
       break;
     case "rotate":
-      demoForm.append(
-        createInput("number", "angle", "Rotation Angle (degrees)")
-      );
+      form.append(createInput("number", "angle", "Rotation Angle (degrees)"));
       break;
     case "brightness":
-      demoForm.append(createInput("number", "factor", "Brightness Factor"));
+      form.append(createInput("number", "factor", "Brightness Factor"));
       break;
     case "contrast":
-      demoForm.append(createInput("number", "factor", "Contrast Factor"));
+      form.append(createInput("number", "factor", "Contrast Factor"));
       break;
     case "flip":
       const axisSelect = $("<select>").attr({ name: "axis", id: "axis" });
@@ -226,11 +221,10 @@ function createDemoForm(endpoint) {
             .text(axis.charAt(0).toUpperCase() + axis.slice(1))
         );
       });
-      const axisContainer = $("<div>").append(
-        $("<label>").attr("for", "axis").text("Flip Axis"),
-        axisSelect
-      );
-      demoForm.append(axisContainer);
+      const axisContainer = $("<div>")
+        .addClass("form-group")
+        .append($("<label>").attr("for", "axis").text("Flip Axis"), axisSelect);
+      form.append(axisContainer);
       break;
     case "filter":
       const filterTypeSelect = $("<select>").attr({
@@ -244,58 +238,33 @@ function createDemoForm(endpoint) {
             .text(type.charAt(0).toUpperCase() + type.slice(1))
         );
       });
-      const filterTypeContainer = $("<div>").append(
-        $("<label>").attr("for", "filter_type").text("Filter Type"),
-        filterTypeSelect
-      );
-      demoForm.append(filterTypeContainer);
+      const filterTypeContainer = $("<div>")
+        .addClass("form-group")
+        .append(
+          $("<label>").attr("for", "filter_type").text("Filter Type"),
+          filterTypeSelect
+        );
+      form.append(filterTypeContainer);
       break;
     case "convert":
-      demoForm.append(
+      form.append(
         createInput("text", "output_format", "Output Format (e.g., png, jpeg)")
       );
       break;
     case "add_text":
-      demoForm.append(createInput("text", "text", "Text to Add"));
-      demoForm.append(createInput("number", "font", "Font (ID)"));
-      demoForm.append(createInput("number", "font_size", "Font Size"));
-      demoForm.append(createInput("number", "left", "Left Position"));
-      demoForm.append(createInput("number", "top", "Top Position"));
-      demoForm.append(
-        createInput("text", "color", "Color (e.g., 255,255,255)")
-      );
+      form.append(createInput("text", "text", "Text to Add"));
+      form.append(createInput("number", "font", "Font (ID)"));
+      form.append(createInput("number", "font_size", "Font Size"));
+      form.append(createInput("number", "left", "Left Position"));
+      form.append(createInput("number", "top", "Top Position"));
+      form.append(createInput("text", "color", "Color (e.g., 255,255,255)"));
       break;
     case "list_fonts":
       // No specific inputs needed, just the action to list fonts.
       break;
   }
-
-  const submitButton = $("<button>")
-    .attr("type", "submit")
-    .text("Process Image");
-  demoForm.append(submitButton);
-
-  demoForm.on("submit", (event) => {
-    event.preventDefault();
-    const formData = new FormData(demoForm[0]);
-    processImage(endpoint, formData);
-  });
-
-  contentArea.append(demoForm);
 }
 
-/**
- * Creates a labeled input field and returns the constructed element.
- *
- * @param {string} type - The type of the input element (e.g., 'text', 'number').
- * @param {string} name - The name attribute for the input element.
- * @param {string} labelText - The text to be used for the label of the input.
- * @returns {jQuery} The jQuery object containing the constructed input and label.
- *
- * @example
- * // Create a number input for an angle with label "Rotation Angle (degrees)"
- * createInput('number', 'angle', 'Rotation Angle (degrees)');
- */
 function createInput(type, name, labelText) {
   const label = $("<label>").attr("for", name).text(labelText);
   const input = $("<input>").attr({
@@ -304,9 +273,7 @@ function createInput(type, name, labelText) {
     id: name,
     required: true,
   });
-
-  const inputContainer = $("<div>").addClass("form-group");
-  inputContainer.append(label).append(input);
+  const inputContainer = $("<div>").addClass("form-group").append(label, input);
   return inputContainer;
 }
 
