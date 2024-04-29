@@ -1,4 +1,4 @@
-const BASE_URL = process.env.REACT_APP_API_URL;
+const BASE_URL = "https://seahorse-app-lacq9.ondigitalocean.app/";
 
 /**
  * Loads the demo form for a specified API endpoint.
