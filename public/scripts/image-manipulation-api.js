@@ -1,4 +1,4 @@
-const BASE_URL = "https://seahorse-app-lacq9.ondigitalocean.app/api";
+const BASE_URL = "";
 
 /**
  * Loads the demo form for a specified API endpoint.
