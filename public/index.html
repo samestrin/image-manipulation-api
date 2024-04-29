@@ -17,7 +17,13 @@
           <ul class="nav flex-column"></ul>
         </div>
         <div class="col-9" id="content" style="display: none">
-          <input type="file" id="imageUpload" accept="image/*" />
+          <form
+            id="imageForm"
+            enctype="multipart/form-data"
+            style="display: none"
+          >
+            <!-- Additional dynamic inputs will be appended here -->
+          </form>
 
           <div id="preview" class="image-container">
             <h3>Uploaded Image Preview</h3>
