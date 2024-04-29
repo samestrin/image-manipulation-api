@@ -33,8 +33,8 @@ function loadDemo(endpointName) {
     .addClass("btn btn-primary")
     .text("Submit");
   cardText.append(submitButton); // Append submit button inside card text
-
-  card.append(cardText);
+  cardBody.append(cardText); // Append
+  card.append(cardBody);
 
   // Replace the form's usual direct appending with appending to the cardText
   form.append(card);

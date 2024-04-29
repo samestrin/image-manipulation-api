@@ -43,7 +43,3 @@ body {
 .form-group input {
   display: block; /* Makes the input take the full width of its container */
 }
-
-.card {
-  padding: 10px;
-}
