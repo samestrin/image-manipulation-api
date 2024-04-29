@@ -177,6 +177,7 @@ function createDemoForm(endpoint) {
 
   if (
     [
+      "resize",
       "crop",
       "rotate",
       "grayscale",
@@ -194,6 +195,10 @@ function createDemoForm(endpoint) {
   }
 
   switch (endpoint) {
+    case "resize":
+      demoForm.append(createInput("number", "width", "Width"));
+      demoForm.append(createInput("number", "height", "Height"));
+      break;
     case "crop":
       demoForm.append(createInput("number", "x1", "X1 Coordinate"));
       demoForm.append(createInput("number", "y1", "Y1 Coordinate"));
