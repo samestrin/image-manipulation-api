@@ -1,4 +1,4 @@
-const BASE_URL = "https://seahorse-app-lacq9.ondigitalocean.app/";
+const BASE_URL = "https://seahorse-app-lacq9.ondigitalocean.app/api";
 
 /**
  * Loads the demo form for a specified API endpoint.
@@ -11,24 +11,20 @@ const BASE_URL = "https://seahorse-app-lacq9.ondigitalocean.app/";
  */
 function loadDemo(endpointName) {
   const form = $("#imageForm");
+  form.empty();
   form.show();
+
   // Decide the method based on the endpoint
   const method = endpointName === "list_fonts" ? "GET" : "POST";
   form.attr("method", method);
-  form.attr("action", `${BASE_URL}/api/${endpointName}`);
-
-  // Clear any previous inputs and dynamically add as needed
-  form.empty();
-
-  // Dynamically add necessary inputs for the endpoint, except for list_fonts
-  if (!["list_fonts"].includes(endpointName)) {
-    const imageInput = createInput("file", "image", "Image File");
-    imageInput.find("input").attr("accept", "image/*");
-    form.append(imageInput);
-  }
-
+  form.attr("action", `${BASE_URL}/${endpointName}`);
+  form.attr("endpoint", endpointName);
   // Add additional specific inputs based on endpoint requirements
   addEndpointSpecificInputs(endpointName, form);
+  // Create a submit button
+  const submitButton = $("<button>").attr("type", "submit").text("Submit");
+
+  form.append(submitButton);
 }
 
 /**
@@ -127,11 +123,14 @@ function handleFileUpload() {
  * processImage('crop', formData);
  */
 function processImage(endpoint, formData) {
+  $("#message").hide();
+  $("#message").empty();
+
   $(".progress").show();
   const progressBar = $("#progressBar");
-
+  alert(`${BASE_URL}/${endpoint}`);
   $.ajax({
-    url: `${BASE_URL}/api/${endpoint}`,
+    url: `${BASE_URL}/${endpoint}`,
     type: "POST",
     data: formData,
     processData: false,
@@ -158,6 +157,8 @@ function processImage(endpoint, formData) {
       const resultsContainer = $("#results");
       resultsContainer.empty();
       resultsContainer.append(resultImg);
+      const content = $("#content");
+      content.show();
     },
     complete: function () {
       progressBar.width("100%").text("100%");
@@ -165,28 +166,17 @@ function processImage(endpoint, formData) {
     },
     error: function (xhr) {
       console.error("Error:", xhr.statusText);
-      $("#results").html(
+      $("#message").html(
         `<p style="color: red;">Image processing failed: ${xhr.statusText}. Please try again.</p>`
       );
+      $("#message").show();
     },
   });
 }
 
 function addEndpointSpecificInputs(endpoint, form) {
-  if (
-    [
-      "resize",
-      "crop",
-      "rotate",
-      "grayscale",
-      "brightness",
-      "contrast",
-      "flip",
-      "filter",
-      "convert",
-      "add_text",
-    ].includes(endpoint)
-  ) {
+  // Dynamically add necessary inputs for the endpoint, except for list_fonts
+  if (!["list_fonts"].includes(endpoint)) {
     const imageInput = createInput("file", "image", "Image File");
     imageInput.find("input").attr("accept", "image/*");
     form.append(imageInput);
@@ -280,7 +270,7 @@ function createInput(type, name, labelText) {
 $(document).on("submit", "form", function (event) {
   event.preventDefault();
   const formData = new FormData(this); // 'this' refers to the form that was submitted
-  const endpoint = this.id.replace("demoForm_", ""); // Extract endpoint from form id
+  const endpoint = this.getAttribute("endpoint"); // Extract endpoint from this
   processImage(endpoint, formData);
 });
 
