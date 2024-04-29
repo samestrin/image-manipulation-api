@@ -169,6 +169,7 @@ function processImage(endpoint, formData) {
 function createDemoForm(endpoint) {
   const contentArea = $("#content");
   contentArea.empty();
+  contentArea.show();
 
   const demoForm = $("<form>").attr({
     id: `demoForm_${endpoint}`,
