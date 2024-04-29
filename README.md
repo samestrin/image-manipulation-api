@@ -2,7 +2,7 @@
 
 [![Star on GitHub](https://img.shields.io/github/stars/samestrin/image-manipulation-demo?style=social)](https://github.com/samestrin/image-manipulation-demo/stargazers) [![Fork on GitHub](https://img.shields.io/github/forks/samestrin/image-manipulation-demo?style=social)](https://github.com/samestrin/image-manipulation-demo/network/members) [![Watch on GitHub](https://img.shields.io/github/watchers/samestrin/image-manipulation-demo?style=social)](https://github.com/samestrin/image-manipulation-demo/watchers)
 
-![Version 0.0.1](https://img.shields.io/badge/Version-0.0.1-blue) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Built with jQuery](https://img.shields.io/badge/Built%20with-jQuery-green)](https://jquery.com/)
+![Version ](https://img.shields.io/badge/Version--blue) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Built with jQuery](https://img.shields.io/badge/Built%20with-jQuery-green)](https://jquery.com/)
 
 image-manipulation-api-demo is a simple a Bootstrap/jQuery based testing interface the [image-manipulation-api-digitalocean](https://github.com/samestrin/image-manipulation-api-digitalocean) project.
 
