@@ -4,7 +4,7 @@
 
 ![Version ](https://img.shields.io/badge/Version--blue) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Built with jQuery](https://img.shields.io/badge/Built%20with-jQuery-green)](https://jquery.com/)
 
-image-manipulation-api-demo is a simple testing interface that uses Bootstrap and jQuery for AJAX-based interactions with the [image-manipulation-api-digitalocean](https://github.com/samestrin/image-manipulation-api-digitalocean) project.
+image-manipulation-api-demo is a simple testing interface that utilizes Bootstrap and jQuery for AJAX-based interactions with the [image-manipulation-api-digitalocean](https://github.com/samestrin/image-manipulation-api-digitalocean) project.
 
 _This is under active development._
 
